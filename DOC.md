@@ -327,9 +327,11 @@ Main Screen (swipe left/right between tabs, up/down to toggle weight/time mode i
     |   |-- Normal brightness slider
     |   \-- Screensaver brightness slider
     |
-    +-- Grind Mode
+    +-- Grind Settings
     |   |-- Swipe Gestures toggle (enable/disable vertical swipes)
-    |   \-- Time Mode toggle (direct weight/time mode selection)
+    |   |-- Time Mode toggle (direct weight/time mode selection)
+    |   |-- Start on Cup toggle (auto-start when target cup lands within the threshold window)
+    |   \-- Return on Removal toggle (auto-close completion once the cup leaves the scale)
     |
     +-- Tools
     |   |-- Tare button
@@ -350,6 +352,17 @@ During Grinding:
 |-- Tap anywhere: Arc ↔ Nerdy display modes
 \-- STOP button
 ```
+
+---
+
+## ⚡ Automated Grind Flow
+
+Want the scale to run itself? Enable the automation toggles in **Settings → Grind Settings**:
+
+- **Start on Cup**: As soon as a recognized cup or portafilter lands on the load cell (≈50 g delta inside a 2 s window), the active profile tars and begins grinding automatically. Ideal when dosing cups dock directly under the chute.
+- **Return on Removal**: When the cup weight drops away after completion, the grinder exits the results screen and returns to Ready. Useful for keeping the workflow hands-free between shots.
+
+Both automation settings rely on the same smoothed weight deltas used for flow detection, so no extra calibration is required. Leave them disabled if you prefer manual control or experience false triggers with lighter accessories.
 
 ---
 
