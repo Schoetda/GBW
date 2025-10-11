@@ -27,6 +27,10 @@
 #define DEBUG_CALIBRATION 0                                               // Enable detailed calibration debugging
 #define DEBUG_WEIGHT_SETTLING 0                                           // Enable weight settling debugging
 
+// Touch I2C polling creates expected NACKs when the controller has no data.
+// Suppress noisy low-level logs while keeping higher-level drivers quiet.
+#define DEBUG_SUPPRESS_TOUCH_I2C_ERRORS 1
+
 //------------------------------------------------------------------------------
 // MOCK HARDWARE DETAILED CONFIGURATION
 //------------------------------------------------------------------------------
@@ -39,5 +43,4 @@
 #define DEBUG_MOCK_START_DELAY_MS 500                                             // Delay from motor start command to weight increase (continuous grind)
 #define DEBUG_MOCK_STOP_DELAY_MS 400                                              // Delay from motor stop command to weight stop
 #define DEBUG_MOCK_MOTOR_LATENCY_MS 42.0f                                         // Hidden minimum pulse duration to produce grounds (for auto-tune testing)
-
 
