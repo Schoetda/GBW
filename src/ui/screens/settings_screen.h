@@ -129,6 +129,7 @@ private:
     void create_stats_page(lv_obj_t* parent);
     void create_diagnostics_page(lv_obj_t* parent);
     lv_obj_t* create_separator(lv_obj_t* parent, const char* text = nullptr);
+    lv_obj_t* create_menu_section(lv_obj_t* parent, const char* text);
     lv_obj_t* create_menu_item(lv_obj_t* parent, const char* text);
     lv_obj_t *create_toggle_row(lv_obj_t *parent, const char *text,lv_obj_t **out_toggle);
     lv_obj_t *create_slider_row(lv_obj_t *parent, const char *text,
