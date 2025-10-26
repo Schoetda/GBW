@@ -31,6 +31,7 @@
 
 // Motor Control
 #define HW_MOTOR_RELAY_PIN 18                                                  // GPIO pin for grinder motor control relay
+#define HW_GRINDER_SETTLING_TIME_MS 500                                        // Motor settling time after startup (vibration/transient immunity)
 
 //------------------------------------------------------------------------------
 // LOAD CELL ADC SPECIFICATIONS
