@@ -1,6 +1,8 @@
 #pragma once
 #include <Arduino_GFX_Library.h>
 #include <lvgl.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 #include "touch_driver.h"
 #include "../config/constants.h"
 
@@ -12,6 +14,7 @@ private:
     lv_indev_t* lvgl_input;
     lv_color_t* draw_buffer;
     TouchDriver touch_driver;
+    SemaphoreHandle_t spi_mutex;
     
     uint32_t screen_width;
     uint32_t screen_height;

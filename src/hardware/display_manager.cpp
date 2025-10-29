@@ -8,6 +8,12 @@ DisplayManager* g_display_manager = nullptr;
 void DisplayManager::init() {
     g_display_manager = this;
     
+    // Create mutex for SPI bus protection
+    spi_mutex = xSemaphoreCreateMutex();
+    if (!spi_mutex) {
+        return;
+    }
+    
     // Initialize display hardware
     bus = new Arduino_ESP32QSPI(
         HW_DISPLAY_CS_PIN, HW_DISPLAY_SCK_PIN, HW_DISPLAY_D0_PIN, 
@@ -77,13 +83,18 @@ void DisplayManager::display_rounder_cb(lv_event_t* e) {
 void DisplayManager::display_flush_cb(lv_display_t* disp, const lv_area_t* area, uint8_t* px_map) {
     if (!g_display_manager || !g_display_manager->gfx_device) return;
     
-    uint32_t w = lv_area_get_width(area);
-    uint32_t h = lv_area_get_height(area);
-    
-    if (LV_COLOR_16_SWAP){
-        g_display_manager->gfx_device->draw16bitBeRGBBitmap(area->x1, area->y1, (uint16_t*)px_map, w, h);
-    } else {
-        g_display_manager->gfx_device->draw16bitRGBBitmap(area->x1, area->y1, (uint16_t*)px_map, w, h);
+    // Protect SPI bus access with mutex to prevent concurrent transactions
+    if (xSemaphoreTake(g_display_manager->spi_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        uint32_t w = lv_area_get_width(area);
+        uint32_t h = lv_area_get_height(area);
+        
+        if (LV_COLOR_16_SWAP){
+            g_display_manager->gfx_device->draw16bitBeRGBBitmap(area->x1, area->y1, (uint16_t*)px_map, w, h);
+        } else {
+            g_display_manager->gfx_device->draw16bitRGBBitmap(area->x1, area->y1, (uint16_t*)px_map, w, h);
+        }
+        
+        xSemaphoreGive(g_display_manager->spi_mutex);
     }
     
     lv_display_flush_ready(disp);
@@ -108,14 +119,19 @@ uint32_t DisplayManager::millis_cb() {
 }
 
 void DisplayManager::set_brightness(float brightness) {
-    if (!initialized || !gfx_device) return;
+    if (!initialized || !gfx_device || !spi_mutex) return;
     
     // Clamp brightness to valid hardware range [0.0, 1.0]
     if (brightness < 0.0f) brightness = 0.0f;
     if (brightness > 1.0f) brightness = 1.0f;
     
-    // Cast to CO5300 and call setBrightness with 8-bit value
-    Arduino_CO5300* display = static_cast<Arduino_CO5300*>(gfx_device);
-    uint8_t brightness_value = (uint8_t)(brightness * 255.0f);
-    display->setBrightness(brightness_value);
+    // Protect SPI bus access with mutex
+    if (xSemaphoreTake(spi_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        // Cast to CO5300 and call setBrightness with 8-bit value
+        Arduino_CO5300* display = static_cast<Arduino_CO5300*>(gfx_device);
+        uint8_t brightness_value = (uint8_t)(brightness * 255.0f);
+        display->setBrightness(brightness_value);
+        
+        xSemaphoreGive(spi_mutex);
+    }
 }
