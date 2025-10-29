@@ -52,9 +52,10 @@ void PurgeConfirmScreen::create() {
 
     // Checkbox with label
     checkbox = lv_checkbox_create(screen);
-    lv_checkbox_set_text(checkbox, "Keep purge grinds from now on");
+    lv_checkbox_set_text(checkbox, "Keep grinds (switch to Prime)");
     lv_obj_set_style_text_font(checkbox, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_color(checkbox, lv_color_hex(THEME_COLOR_TEXT_PRIMARY), 0);
+    lv_obj_set_width(checkbox, 260);  // Set max width to prevent overflow
 
     // Single "CONTINUE" button
     continue_button = create_button(screen, "CONTINUE", lv_color_hex(THEME_COLOR_SUCCESS), 260, 80, &lv_font_montserrat_28);
@@ -66,6 +67,7 @@ void PurgeConfirmScreen::create() {
 
 void PurgeConfirmScreen::show() {
     lv_obj_clear_flag(screen, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(screen);  // Bring to front, above all other UI elements
     visible = true;
 }
 

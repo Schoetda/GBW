@@ -531,8 +531,8 @@ void GrindController::update() {
         set_error_message("Err: neg wt");
         switch_phase(GrindPhase::TIMEOUT, loop_data);
     }
-    // Only check timeout during active grinding phases, not during completion states
-    else if (phase != GrindPhase::COMPLETED && phase != GrindPhase::TIMEOUT && check_timeout()) {
+    // Only check timeout during active grinding phases, not during completion states or user confirmation
+    else if (phase != GrindPhase::COMPLETED && phase != GrindPhase::TIMEOUT && phase != GrindPhase::PURGE_CONFIRM && check_timeout()) {
         timeout_phase = phase;
         grinder->stop();
         last_session_result_ = GrindSessionResult::TIMEOUT;
