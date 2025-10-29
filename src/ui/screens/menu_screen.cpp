@@ -376,7 +376,7 @@ void MenuScreen::create_grind_mode_page(lv_obj_t* parent) {
 
     // Grinder Purging section
     create_separator(parent, "Purging");
-    create_description_label(parent, "Prime keeps the coffee used to saturate the grinder, purge prompts you to discard stale grinds.");
+    create_description_label(parent, "Prime keeps the coffee used to saturate the grinder, purge prompts you to discard stale grinds. (Amount is a minimum target not an exact goal)");
 
     // Radio button group for grinder purge mode (Prime/Purge)
     const char* grinder_purge_modes[] = {"Prime", "Purge"};
