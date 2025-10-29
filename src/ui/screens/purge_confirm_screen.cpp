@@ -9,7 +9,7 @@ void PurgeConfirmScreen::create() {
     lv_obj_set_style_bg_opa(screen, LV_OPA_TRANSP, 0);
     lv_obj_set_style_border_width(screen, 0, 0);
     lv_obj_set_style_pad_top(screen, 6, 0);
-    lv_obj_set_style_pad_bottom(screen, 120, 0);  // 120px padding for button area (100px button + 20px margin)
+    lv_obj_set_style_pad_bottom(screen, 140, 0);  // 140px padding to push content up (100px button + 40px spacing)
     lv_obj_set_style_pad_left(screen, 0, 0);
     lv_obj_set_style_pad_right(screen, 0, 0);
     lv_obj_set_style_pad_gap(screen, 5, 0);
@@ -42,7 +42,7 @@ void PurgeConfirmScreen::create() {
 
     // Message label
     message_label = lv_label_create(message_container);
-    lv_label_set_text(message_label, "Remove the purge grinds if desired, then continue.");
+    lv_label_set_text(message_label, "Remove the purge grinds if desired.");
     lv_obj_set_style_text_font(message_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_color(message_label, lv_color_hex(THEME_COLOR_TEXT_PRIMARY), 0);
     lv_obj_set_style_text_align(message_label, LV_TEXT_ALIGN_CENTER, 0);
