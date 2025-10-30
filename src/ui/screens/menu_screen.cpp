@@ -376,10 +376,10 @@ void MenuScreen::create_grind_mode_page(lv_obj_t* parent) {
 
     // Grinder Purging section
     create_separator(parent, "Purging");
-    create_description_label(parent, "Saturate grinder before weight-mode grinds. Amount is a minimum target, not an exact goal.");
+    create_description_label(parent, "Decide what do do with the grinded coffee after the grinder is primed.");
 
     // Radio button group for grinder purge mode (Keep/Remove)
-    const char* grinder_purge_modes[] = {"Keep grinds", "Remove grinds"};
+    const char* grinder_purge_modes[] = {"Keep", "Remove"};
     grinder_purge_mode_radio_group = create_radio_button_group(
         parent,
         grinder_purge_modes,
@@ -390,6 +390,8 @@ void MenuScreen::create_grind_mode_page(lv_obj_t* parent) {
         grinder_purge_mode_callback,
         this
     );
+
+    create_description_label(parent, "Purge amount is a minimum target, not an exact goal.");
 
     // Slider for grinder purge amount (0.1g - 5.0g, default 1.0g)
     create_slider_row(parent, "Amount", &grinder_purge_amount_label, &grinder_purge_amount_slider,
