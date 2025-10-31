@@ -20,7 +20,7 @@ enum class GrinderPurgeMode {
 #define GRIND_PURGE_MODE_DEFAULT static_cast<int>(GrinderPurgeMode::PURGE)
 #define GRIND_PURGE_AMOUNT_DEFAULT_G 1.0f
 #define GRIND_PURGE_AMOUNT_MIN_G 0.1f
-#define GRIND_PURGE_AMOUNT_MAX_G 5.0f
+#define GRIND_PURGE_AMOUNT_MAX_G 2.5f
 
 //------------------------------------------------------------------------------
 // GRIND CONTROL TUNING
