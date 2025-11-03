@@ -248,7 +248,7 @@ void UIManager::switch_to_state(UIState new_state) {
                 if (!grind_controller->get_grinder_purged_since_boot()) {
                     // First grind since boot
                     snprintf(message_buffer, sizeof(message_buffer),
-                             "Last grind unknown. Remove the purge grinds if desired.");
+                             "Previous grind time unknown. Remove the purge grinds if desired.");
                 } else {
                     // Calculate elapsed time
                     uint64_t current_ms = esp_timer_get_time() / 1000;
