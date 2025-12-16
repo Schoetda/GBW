@@ -1075,7 +1075,7 @@ lv_obj_t* MenuScreen::create_description_label(lv_obj_t* parent, const char* tex
     lv_obj_set_style_pad_right(container, 14, 0);
     lv_obj_set_style_margin_top(container, 12, 0);
     lv_obj_set_style_margin_bottom(container, 12, 0);
-    lv_obj_set_size(container, 280, LV_SIZE_CONTENT);
+    lv_obj_set_size(container, LV_PCT(100), LV_SIZE_CONTENT);
     lv_obj_clear_flag(container, LV_OBJ_FLAG_SCROLLABLE);
 
     // Create label inside container

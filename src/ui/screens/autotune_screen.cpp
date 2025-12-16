@@ -25,7 +25,7 @@ void AutoTuneScreen::create() {
 
     // === Console Screen ===
     console_container = lv_obj_create(screen);
-    lv_obj_set_size(console_container, 280, 340);
+    lv_obj_set_size(console_container, LV_PCT(100), LV_DISPLAY_SIZE_CONTENT_HEIGHT_PX);
     lv_obj_set_style_bg_opa(console_container, LV_OPA_TRANSP, 0);
     lv_obj_set_style_border_width(console_container, 0, 0);
     lv_obj_set_style_pad_all(console_container, 0, 0);
@@ -34,7 +34,7 @@ void AutoTuneScreen::create() {
     lv_obj_align_to(console_container, title_label, LV_ALIGN_OUT_BOTTOM_MID, 0, 15);
 
     console_textarea = lv_textarea_create(console_container);
-    lv_obj_set_size(console_textarea, 280, 340);
+    lv_obj_set_size(console_textarea, LV_PCT(100), LV_DISPLAY_SIZE_CONTENT_HEIGHT_PX);
     lv_textarea_set_text(console_textarea, "");
     lv_obj_set_style_text_font(console_textarea, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_color(console_textarea, lv_color_hex(THEME_COLOR_TEXT_PRIMARY), 0);
@@ -47,7 +47,7 @@ void AutoTuneScreen::create() {
 
     // === Result Screen ===
     result_container = lv_obj_create(screen);
-    lv_obj_set_size(result_container, 280, LV_SIZE_CONTENT);
+    lv_obj_set_size(result_container, LV_PCT(100), LV_SIZE_CONTENT);
     lv_obj_set_style_bg_opa(result_container, LV_OPA_TRANSP, 0);
     lv_obj_set_style_border_width(result_container, 0, 0);
     lv_obj_set_style_pad_all(result_container, 0, 0);

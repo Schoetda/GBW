@@ -113,7 +113,7 @@ lv_obj_t* create_data_label(lv_obj_t* parent, const char* name, lv_obj_t** value
     lv_obj_set_style_pad_left(container, 10, 0);
     lv_obj_set_style_pad_right(container, 14, 0);
     lv_obj_set_style_margin_all(container, 0, 0);
-    lv_obj_set_size(container, 280, LV_SIZE_CONTENT);
+    lv_obj_set_size(container, LV_PCT(100), LV_SIZE_CONTENT);
     lv_obj_clear_flag(container, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_set_layout(container, LV_LAYOUT_FLEX);
@@ -256,7 +256,7 @@ lv_obj_t* create_radio_button_group(
     if (layout == LV_FLEX_FLOW_ROW) {
         lv_obj_set_flex_align(group_container, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
         lv_obj_set_style_pad_column(group_container, 10, 0);
-        lv_obj_set_size(group_container, 280, LV_SIZE_CONTENT);
+        lv_obj_set_size(group_container, LV_PCT(100), LV_SIZE_CONTENT);
     } else {
         lv_obj_set_flex_align(group_container, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
         lv_obj_set_style_pad_row(group_container, 10, 0);
@@ -274,7 +274,7 @@ lv_obj_t* create_radio_button_group(
     // Calculate button width if auto
     int32_t actual_button_width = button_width;
     if (layout == LV_FLEX_FLOW_ROW && button_width == -1) {
-        actual_button_width = (280 - (option_count - 1) * 10) / option_count;
+        actual_button_width = (LV_PCT(100) - (option_count - 1) * 10) / option_count;
     }
     
     // Create buttons

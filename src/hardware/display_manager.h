@@ -35,6 +35,10 @@ private:
     static void display_rounder_cb(lv_event_t* e);
     static void touchpad_read_cb(lv_indev_t* indev, lv_indev_data_t* data);
     static uint32_t millis_cb();
+
+    void init_display_hardware(const DisplayConfig& config);
+    void init_qspi_display(const DisplayConfig& config);
+    void init_mipi_parallel_display(const DisplayConfig& config);
 };
 
 extern DisplayManager* g_display_manager;

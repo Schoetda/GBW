@@ -11,17 +11,13 @@ DisplayManager* g_display_manager = nullptr;
 void DisplayManager::init() {
     g_display_manager = this;
     
-    // Initialize display hardware
-    bus = new Arduino_ESP32QSPI(
-        HW_DISPLAY_CS_PIN, HW_DISPLAY_SCK_PIN, HW_DISPLAY_D0_PIN, 
-        HW_DISPLAY_D1_PIN, HW_DISPLAY_D2_PIN, HW_DISPLAY_D3_PIN);
-    
-    gfx_device = new Arduino_CO5300(
-        bus, HW_DISPLAY_RESET_PIN, HW_DISPLAY_ROTATION_DEG, HW_DISPLAY_WIDTH_PX, HW_DISPLAY_HEIGHT_PX,
-        HW_DISPLAY_COLOR_ORDER, HW_DISPLAY_OFFSET_X_PX, HW_DISPLAY_IPS_INVERT_X, HW_DISPLAY_IPS_INVERT_Y);
+    // Get active display config
+    const DisplayConfig& config = ACTIVE_DISPLAY;
 
+    // Initialize display hardware
+    init_display_hardware(config);
     
-    if (!gfx_device->begin()) {
+    if (!gfx_device || !gfx_device->begin()) {
         return;
     }
     
@@ -84,6 +80,10 @@ void DisplayManager::init() {
 
     lv_display_add_event_cb(lvgl_display, display_rounder_cb, LV_EVENT_INVALIDATE_AREA, NULL);
     
+    if (config.is_round) {
+        lv_obj_set_style_clip_corner(lv_scr_act(), true, 0);
+    }
+
     // Initialize touch
     touch_driver.init();
     lvgl_input = lv_indev_create();
@@ -91,6 +91,82 @@ void DisplayManager::init() {
     lv_indev_set_read_cb(lvgl_input, touchpad_read_cb);
     
     initialized = true;
+}
+
+void DisplayManager::init_display_hardware(const DisplayConfig& config) {
+    switch (config.interface) {
+        case DisplayInterfaceType::QSPI:
+            init_qspi_display(config);
+            break;
+        case DisplayInterfaceType::MIPI_PARALLEL:
+            init_mipi_parallel_display(config);
+            break;
+        // Add more as needed
+    }
+}
+
+void DisplayManager::init_qspi_display(const DisplayConfig& config) {
+    bus = new Arduino_ESP32QSPI(
+        config.pins.cs, config.pins.sck, 
+        config.pins.d0, config.pins.d1, 
+        config.pins.d2, config.pins.d3
+    );
+    
+    if (strcmp(config.driver_name, "CO5300") == 0) {
+        gfx_device = new Arduino_CO5300(
+            bus, config.pins.rst, config.rotation, 
+            config.width, config.height,
+            config.color_order, config.offset_x,
+            config.ips_invert_x, config.ips_invert_y
+        );
+    }
+    // Add more QSPI drivers as needed
+}
+
+void DisplayManager::init_mipi_parallel_display(const DisplayConfig& config) {
+    // Handle MIPI_PARALLEL interface (e.g., ST7701)
+    
+    // Create control bus
+    bus = new Arduino_ESP32SPI(
+        GFX_NOT_DEFINED, // dc
+        config.pins.cs, config.pins.sck, config.pins.sda, GFX_NOT_DEFINED
+    );
+
+    // Modern Arduino_GFX usage: create the panel, then the display
+    Arduino_ESP32RGBPanel* rgbpanel = new Arduino_ESP32RGBPanel(
+        config.pins.de, config.pins.vsync, config.pins.hsync, config.pins.pclk,
+        config.pins.r0, config.pins.r1, config.pins.r2, config.pins.r3, config.pins.r4,
+        config.pins.g0, config.pins.g1, config.pins.g2, config.pins.g3, config.pins.g4, config.pins.g5,
+        config.pins.b0, config.pins.b1, config.pins.b2, config.pins.b3, config.pins.b4,
+        1, // hsync_polarity
+        config.hsync_front_porch, config.hsync_pulse_width, config.hsync_back_porch,
+        1, // vsync_polarity
+        config.vsync_front_porch, config.vsync_pulse_width, config.vsync_back_porch,
+        0, // pclk_active_neg
+        12000000, // prefer_speed
+        false, // useBigEndian
+        0, // de_idle_high
+        0, // pclk_idle_high
+        0  // bounce_buffer_size_px
+    );
+
+    // Determine init operations based on round vs rectangular
+    const uint8_t* init_ops;
+    size_t init_ops_len;
+    if (config.is_round) {
+        init_ops = st7701_type5_init_operations;
+        init_ops_len = sizeof(st7701_type5_init_operations);
+    } else {
+        init_ops = st7701_type1_init_operations;
+        init_ops_len = sizeof(st7701_type1_init_operations);
+    }
+
+    gfx_device = new Arduino_RGB_Display(
+        config.width, config.height, rgbpanel, config.rotation, true, // auto_flush
+        bus, // bus (not used for RGB panel)
+        config.pins.rst >= 0 ? config.pins.rst : GFX_NOT_DEFINED,
+        init_ops, init_ops_len
+    );
 }
 
 void DisplayManager::update() {
@@ -172,12 +248,35 @@ uint32_t DisplayManager::millis_cb() {
 void DisplayManager::set_brightness(float brightness) {
     if (!initialized || !gfx_device) return;
     
+    const DisplayConfig& config = ACTIVE_DISPLAY;
+    
     // Clamp brightness to valid hardware range [0.0, 1.0]
     if (brightness < 0.0f) brightness = 0.0f;
     if (brightness > 1.0f) brightness = 1.0f;
     
-    // Cast to CO5300 and call setBrightness with 8-bit value
-    Arduino_CO5300* display = static_cast<Arduino_CO5300*>(gfx_device);
-    uint8_t brightness_value = (uint8_t)(brightness * 255.0f);
-    display->setBrightness(brightness_value);
+    // Apply minimum brightness constraint from config
+    float min_brightness = config.min_brightness_pct / 100.0f;
+    if (brightness < min_brightness) brightness = min_brightness;
+    
+    // Set brightness based on driver type
+    if (strcmp(config.driver_name, "CO5300") == 0) {
+        // CO5300: Use driver's built-in brightness control
+        Arduino_CO5300* display = static_cast<Arduino_CO5300*>(gfx_device);
+        uint8_t brightness_value = (uint8_t)(brightness * 255.0f);
+        display->setBrightness(brightness_value);
+    }
+    else if (strcmp(config.driver_name, "ST7701") == 0) {
+        // ST7701: Use PWM-based backlight control
+        if (config.pins.bl >= 0) {
+            uint8_t brightness_value = (uint8_t)(brightness * 255.0f);
+            // Configure PWM for backlight pin if not already configured
+            static bool bl_pwm_configured = false;
+            if (!bl_pwm_configured) {
+                ledcAttach(config.pins.bl, 5000, 8); // pin, 5kHz, 8-bit
+                bl_pwm_configured = true;
+            }
+            ledcWrite(0, brightness_value);
+        }
+    }
+    // Add other driver types here as needed
 }
