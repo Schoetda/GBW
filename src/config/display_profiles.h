@@ -4,7 +4,23 @@
 enum class DisplayProfile {
     ESP32S3_TOUCH_AMOLED_164,  // Current 280x456 QSPI
     VIEWE_TOUCH_ST7701S_ROUND_21,    // 480x480 round T-Panel-S3
-    // Add more profiles as needed};
+    // Add more profiles as needed
+};
+
+enum class TouchController {
+    FT3168,   // FocalTech FT3168 (current)
+    CST826,   // Hynitron CST826
+    NONE      // No touch controller
+};
+
+struct TouchConfig {
+    TouchController controller;
+    uint8_t i2c_address;
+    int8_t sda_pin;
+    int8_t scl_pin;
+    uint8_t num_touches_reg;  // Register to read number of touches
+    uint8_t touch_data_reg;   // Register to read touch data
+};
 
 enum class DisplayInterfaceType {
     QSPI,
@@ -76,6 +92,9 @@ struct DisplayConfig {
     
     // Pin configuration
     DisplayPinConfig pins;
+    
+    // Touch configuration
+    TouchConfig touch;
 };
 
 // Compile-time display selection

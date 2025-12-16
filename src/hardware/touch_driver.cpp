@@ -27,12 +27,20 @@ void TouchDriver::init() {
         return;
     }
     suppress_touch_i2c_logs();
+    
+    // Get touch config from active display profile
+    const TouchConfig& touch_config = ACTIVE_DISPLAY.touch;
+    
+    if (touch_config.controller == TouchController::NONE) {
+        disabled = true;
+        return;
+    }
 
     if (bus_handle == nullptr) {
         i2c_master_bus_config_t bus_config = {};
         bus_config.i2c_port = I2C_NUM_0;
-        bus_config.sda_io_num = static_cast<gpio_num_t>(HW_TOUCH_I2C_SDA_PIN);
-        bus_config.scl_io_num = static_cast<gpio_num_t>(HW_TOUCH_I2C_SCL_PIN);
+        bus_config.sda_io_num = static_cast<gpio_num_t>(touch_config.sda_pin);
+        bus_config.scl_io_num = static_cast<gpio_num_t>(touch_config.scl_pin);
         bus_config.clk_source = I2C_CLK_SRC_DEFAULT;
         bus_config.glitch_ignore_cnt = 7;
         bus_config.intr_priority = 0;
@@ -51,7 +59,7 @@ void TouchDriver::init() {
     if (device_handle == nullptr) {
         i2c_device_config_t device_config = {};
         device_config.dev_addr_length = I2C_ADDR_BIT_LEN_7;
-        device_config.device_address = HW_TOUCH_I2C_ADDRESS;
+        device_config.device_address = touch_config.i2c_address;
         device_config.scl_speed_hz = kTouchI2CFrequencyHz;
         device_config.scl_wait_us = 0;
 #if DEBUG_SUPPRESS_TOUCH_I2C_ERRORS
@@ -81,8 +89,10 @@ void TouchDriver::update() {
         return;
     }
     
+    const TouchConfig& touch_config = ACTIVE_DISPLAY.touch;
+    
     uint8_t buf[5] = {0};
-    uint8_t reg = 0x02; // FT3168_REG_NUM_TOUCHES
+    uint8_t reg = touch_config.num_touches_reg;
     esp_err_t err = i2c_master_transmit_receive(device_handle, &reg, sizeof(reg), buf, sizeof(buf), kTouchI2CTimeoutMs);
     if (err != ESP_OK) {
         // Touch controller NACKs when no touch data - treat as no-touch without logging.
@@ -95,9 +105,25 @@ void TouchDriver::update() {
     
     uint8_t touches = buf[0] & 0x0F;
     if (touches > 0) {
-        last_touch.x = ((buf[1] & 0x0F) << 8) | buf[2];
-        last_touch.y = ((buf[3] & 0x0F) << 8) | buf[4];
-        last_touch.pressed = true;
+        if (touch_config.controller == TouchController::CST826) {
+            // CST826: Read full touch data (6 bytes per touch)
+            uint8_t touch_buf[6] = {0};
+            uint8_t data_reg = touch_config.touch_data_reg;
+            err = i2c_master_transmit_receive(device_handle, &data_reg, sizeof(data_reg), touch_buf, sizeof(touch_buf), kTouchI2CTimeoutMs);
+            if (err == ESP_OK) {
+                // CST826 format: X = (buf[0] & 0x0F) << 8 | buf[1], Y = (buf[2] & 0x0F) << 8 | buf[3]
+                last_touch.x = ((touch_buf[0] & 0x0F) << 8) | touch_buf[1];
+                last_touch.y = ((touch_buf[2] & 0x0F) << 8) | touch_buf[3];
+                last_touch.pressed = true;
+            } else {
+                last_touch.pressed = false;
+            }
+        } else {
+            // FT3168 format: X and Y already in buf from initial read
+            last_touch.x = ((buf[1] & 0x0F) << 8) | buf[2];
+            last_touch.y = ((buf[3] & 0x0F) << 8) | buf[4];
+            last_touch.pressed = true;
+        }
 
         // Update last touch time
         last_touch_time = millis();
