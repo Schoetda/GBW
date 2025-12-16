@@ -3,7 +3,7 @@
 
 enum class DisplayProfile {
     ESP32S3_TOUCH_AMOLED_164,  // Current 280x456 QSPI
-    VIEWE_TOUCH_ST7701S_ROUND_21,    // 480x480 round T-Panel-S3
+    VIEWE_TOUCH_ST7701S_ROUND_21,    // 480x480 round UEDX48480021-MD80ET
     // Add more profiles as needed
 };
 
@@ -82,14 +82,6 @@ struct DisplayConfig {
     int16_t ips_invert_y;       // IPS Y-axis inversion
     uint8_t min_brightness_pct; // Minimum brightness percentage
 
-    // RGB timing parameters (for RGB parallel displays)
-    uint8_t hsync_front_porch = 0;
-    uint8_t hsync_pulse_width = 0;
-    uint8_t hsync_back_porch = 0;
-    uint8_t vsync_front_porch = 0;
-    uint8_t vsync_pulse_width = 0;
-    uint8_t vsync_back_porch = 0;
-    
     // Pin configuration
     DisplayPinConfig pins;
     
@@ -157,13 +149,6 @@ constexpr DisplayConfig DISPLAY_CONFIGS[] = {
         .ips_invert_x = 0,
         .ips_invert_y = 0,
         .min_brightness_pct = 10,
-        // RGB timing parameters
-        .hsync_front_porch = 10,
-        .hsync_pulse_width = 8,
-        .hsync_back_porch = 50,
-        .vsync_front_porch = 10,
-        .vsync_pulse_width = 8,
-        .vsync_back_porch = 20,
         .pins = {
             .rst = 8,
             .bl = 7,

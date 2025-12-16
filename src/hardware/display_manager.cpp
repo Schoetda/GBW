@@ -126,8 +126,20 @@ void DisplayManager::init_qspi_display(const DisplayConfig& config) {
 void DisplayManager::init_mipi_parallel_display(const DisplayConfig& config) {
     // Handle MIPI_PARALLEL interface (e.g., ST7701)
     
-    // Create control bus
-    bus = new Arduino_ESP32SPI(
+    // see: src/board/supported/viewe/BOARD_VIEWE_UEDX48480021_MD80ET.h
+    // see: https://github.com/Witaliy76/Yoradio_RGB_Panel/blob/996d063d1130aa3730d155a91bfb01332932d5c9/src/src/displays/displayUEDX48480021.cpp#L51
+    // 0. Initialize RST pin according to UEDX48480021 guide
+    if (config.pins.rst >= 0) {
+        pinMode(config.pins.rst, OUTPUT);
+        digitalWrite(config.pins.rst, HIGH);  // RST HIGH (inactive)
+        delay(10);
+        digitalWrite(config.pins.rst, LOW);   // RST LOW (reset)
+        delay(10);
+        digitalWrite(config.pins.rst, HIGH);  // RST HIGH (active)
+        delay(50);  // Post-reset delay
+    }
+    
+    bus = new Arduino_SWSPI( //Arduino_ESP32SPI(
         GFX_NOT_DEFINED, // dc
         config.pins.cs, config.pins.sck, config.pins.sda, GFX_NOT_DEFINED
     );
@@ -138,32 +150,34 @@ void DisplayManager::init_mipi_parallel_display(const DisplayConfig& config) {
         config.pins.r0, config.pins.r1, config.pins.r2, config.pins.r3, config.pins.r4,
         config.pins.g0, config.pins.g1, config.pins.g2, config.pins.g3, config.pins.g4, config.pins.g5,
         config.pins.b0, config.pins.b1, config.pins.b2, config.pins.b3, config.pins.b4,
-        1, // hsync_polarity
-        config.hsync_front_porch, config.hsync_pulse_width, config.hsync_back_porch,
-        1, // vsync_polarity
-        config.vsync_front_porch, config.vsync_pulse_width, config.vsync_back_porch,
+        // Horizontal/vertical timing parameters - CRITICAL for UEDX48480021
+        1 /* hsync_polarity */, 50 /* hsync_front_porch */, 8 /* hsync_pulse_width */, 10 /* hsync_back_porch */,
+        1 /* vsync_polarity */, 8 /* vsync_front_porch */, 2 /* vsync_pulse_width */, 18, /* vsync_back_porch */
+
         0, // pclk_active_neg
-        12000000, // prefer_speed
+        16000000UL, // prefer_speed
+        // // To increase the upper limit of the PCLK, see: https://docs.espressif.com/projects/esp-faq/en/latest/software-framework/peripherals/lcd.html#how-can-i-increase-the-upper-limit-of-pclk-settings-on-esp32-s3-while-ensuring-normal-rgb-screen-display
         false, // useBigEndian
         0, // de_idle_high
         0, // pclk_idle_high
-        0  // bounce_buffer_size_px
+        0 //480*10  // bounce_buffer_size_px
     );
 
     // Determine init operations based on round vs rectangular
     const uint8_t* init_ops;
     size_t init_ops_len;
     if (config.is_round) {
-        init_ops = st7701_type5_init_operations;
-        init_ops_len = sizeof(st7701_type5_init_operations);
+        init_ops = st7701_type4_init_operations;
+        init_ops_len = sizeof(st7701_type4_init_operations);
     } else {
         init_ops = st7701_type1_init_operations;
         init_ops_len = sizeof(st7701_type1_init_operations);
     }
 
     gfx_device = new Arduino_RGB_Display(
-        config.width, config.height, rgbpanel, config.rotation, true, // auto_flush
-        bus, // bus (not used for RGB panel)
+        config.width, config.height, rgbpanel, config.rotation, 
+        true, // auto_flush
+        bus,
         config.pins.rst >= 0 ? config.pins.rst : GFX_NOT_DEFINED,
         init_ops, init_ops_len
     );
