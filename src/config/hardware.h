@@ -26,8 +26,8 @@
 #define HW_DISPLAY_RESET_PIN 21                                                // Display reset pin
 
 // Load Cell ADC Pins
-#define HW_LOADCELL_DOUT_PIN 3                                                 // HX711 data output pin
-#define HW_LOADCELL_SCK_PIN 2                                                  // HX711 serial clock pin
+#define HW_LOADCELL_DOUT_PIN 6                                                 // HX711 data output pin
+#define HW_LOADCELL_SCK_PIN 5                                                  // HX711 serial clock pin
 
 // Motor Control
 #define HW_MOTOR_RELAY_PIN 18                                                  // GPIO pin for grinder motor control relay
